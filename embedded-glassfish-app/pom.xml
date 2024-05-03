@@ -20,6 +20,11 @@
             <version>${glassfish.embedded.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>ee.omnifish.glassfish</groupId>
+            <artifactId>grizzly-virtual-threads-pool</artifactId>
+            <version>7.0.14</version>
+        </dependency>
         <!--        <dependency>
             <groupId>jakarta.json</groupId>
             <artifactId>jakarta.json-api</artifactId>
@@ -41,6 +46,8 @@
                             <argument>--add-opens=java.base/java.lang=ALL-UNNAMED</argument>
                             <argument>--add-opens=java.naming/javax.naming.spi=ALL-UNNAMED</argument>
                             <argument>-Dhttp.port=${http.port}</argument>
+                            <argument>-Djdk.tracePinnedThreads=full</argument>
+                            <argument>-Djdk.trackAllThreads=true</argument>
                             <argument>-cp</argument>
                             <argument>${project.build.directory}/classes:${project.build.directory}/dependencies/*</argument>
                             <argument>${exec.mainClass}</argument>

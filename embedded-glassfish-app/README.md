@@ -29,3 +29,13 @@ java --add-opens java.base/java.lang=ALL-UNNAMED --add-opens=java.naming/javax.n
 
 NOTE: On Java 17, it's necessary to add the
 `--add-opens java.base/java.lang=ALL-UNNAMED --add-opens=java.naming/javax.naming.spi=ALL-UNNAMED` JVM arguments.
+
+## Apache Benchmark
+
+https://httpd.apache.org/
+
+Example - 10000 concurrent requets, 50000 in total
+
+```
+ab -n 50000 -c 10000 http://localhost:8080/
+```

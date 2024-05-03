@@ -1,6 +1,12 @@
 package ee.omnifish.glassfish.vt;
 
+import static java.lang.System.Logger.Level.WARNING;
+import static java.nio.file.Path.of;
+
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -14,7 +20,12 @@ import org.glassfish.embeddable.archive.ScatteredArchive;
 public class EmbeddedGlassfishApp {
 
     public static void main(String[] args) throws GlassFishException, IOException {
+        new EmbeddedGlassfishApp().run();
+    }
+
+    public void run() throws GlassFishException, IOException {
         final GlassFishProperties gfProperties = new GlassFishProperties(copyOfSystemProperties());
+        loadPropertiesFromFile(gfProperties);
         setPortFromSimplifiedPropertyOrDefault(gfProperties, "http.port", 8080);
 
         GlassFish glassfish = GlassFishRuntime.bootstrap().newGlassFish(gfProperties);
@@ -27,7 +38,16 @@ public class EmbeddedGlassfishApp {
         final String appName = deployer.deploy(archive.toURI(), "--contextroot=/");
         cleanUpAtEnd(deployer, appName, glassfish);
         System.out.println("Application deployed!");
+    }
 
+    private void loadPropertiesFromFile(final GlassFishProperties gfProperties) {
+        final Path gfPropertiesPath = of("gf.properties");
+        try (Reader inProperties = Files.newBufferedReader(gfPropertiesPath)) {
+            gfProperties.getProperties().load(inProperties);
+//        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
+            System.getLogger(this.getClass().getName()).log(WARNING, "Cannot open file \"" + gfPropertiesPath.toAbsolutePath() + "\". Reason: " + e.getMessage());
+        }
     }
 
     private static void setPortFromSimplifiedPropertyOrDefault(final GlassFishProperties gfProperties, String simplifiedPropertyname, int defaultPort) {

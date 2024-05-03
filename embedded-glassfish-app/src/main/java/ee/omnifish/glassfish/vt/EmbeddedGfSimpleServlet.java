@@ -1,5 +1,8 @@
 package ee.omnifish.glassfish.vt;
 
+
+import static java.time.Duration.ofMillis;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -7,16 +10,70 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @WebServlet("/")
 public class EmbeddedGfSimpleServlet extends HttpServlet {
 
+    static AtomicInteger counter = new AtomicInteger(0);
+    static AtomicInteger maxCounter = new AtomicInteger(0);
+
+    private System.Logger logger = System.getLogger(this.getClass().getName());
+    static AtomicReference<LocalDateTime> lastTimeRef = new AtomicReference<>();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        var current = counter.incrementAndGet();
+        final int maxCounterValue = maxCounter.get();
+        if (current > maxCounterValue) {
+            if (maxCounterValue == maxCounter.compareAndExchange(maxCounterValue, current))  {
+//            if (shouldPrint(maxCounterValue)) {
+//                logger.log(INFO, "Max Current threads: " + current);
+            }
+        }
+//        logger.log(INFO, "Current threads: " + current);
+
+//            logger.log(INFO, "Thread is virtual: " + Thread.currentThread().isVirtual());
+        try {
+            Thread.sleep(ofMillis(random(50L, 150L)));
+        } catch (InterruptedException ex) {
+            Logger.getLogger(EmbeddedGfSimpleServlet.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException(ex);
+        }
         response.setContentType("text/plain");
         final PrintWriter writer = response.getWriter();
         writer.println("Hello from Embedded GlassFish !");
+        current = counter.decrementAndGet();
+//        if (shouldPrint(current)) {
+//            logger.log(INFO, "Current threads: " + current);
+//        }
+//        System.out.println("Current threads: " + current);
+    }
+
+    private long random(long min, long max) {
+        return new Random().nextLong(min, max + 1);
+    }
+
+    private boolean shouldPrint(int current) {
+//        return true;
+        final LocalDateTime now = LocalDateTime.now();
+        if (lastTimeRef.compareAndSet(null, now)) {
+            return true;
+        }
+        final LocalDateTime lastTime = lastTimeRef.get();
+        if (now.minus(100, ChronoUnit.MILLIS).isAfter(lastTime)) {
+            if (lastTimeRef.compareAndSet(lastTime, now)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
