@@ -23,6 +23,8 @@
  */
 package fish.payara.codingdojo.playwithloom;
 
+import static fish.payara.codingdojo.playwithloom.ServerWithoutThreads.getSocket;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -37,11 +39,8 @@ import java.util.logging.Logger;
 public class ServerWithLoomLimited {
 
     public static void main(String[] args) throws IOException {
-        int port = 8080;
-        ServerSocket serverSocket = new ServerSocket(port, 1_000);
-        System.out.println("Server is listening on port " + port);
-//        Executor executor = Executors.newVirtualThreadPerTaskExecutor().withMaxPendingTasks(300);
-        Semaphore sem = new Semaphore(100);
+        ServerSocket serverSocket = getSocket();
+        Semaphore sem = new Semaphore(Integer.parseInt(System.getProperty("threads", "10000")));
 
         while (true) {
             // Accept incoming client connections

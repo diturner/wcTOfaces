@@ -39,22 +39,27 @@ public class EmbeddedGfSimpleServlet extends HttpServlet {
             }
         }
 //        logger.log(INFO, "Current threads: " + current);
+        runInDeeperStack(() -> sleepWithVariation(50L, 150L), 100);
 
-//            logger.log(INFO, "Thread is virtual: " + Thread.currentThread().isVirtual());
-        try {
-            Thread.sleep(ofMillis(random(50L, 150L)));
-        } catch (InterruptedException ex) {
-            Logger.getLogger(EmbeddedGfSimpleServlet.class.getName()).log(Level.SEVERE, null, ex);
-            throw new RuntimeException(ex);
-        }
         response.setContentType("text/plain");
         final PrintWriter writer = response.getWriter();
-        writer.println("Hello from Embedded GlassFish !");
+        writer.println("Hello from Embedded GlassFish ! Running on " + (Thread.currentThread().isVirtual() ? "virtual" : " platform") + " threads.");
         current = counter.decrementAndGet();
 //        if (shouldPrint(current)) {
 //            logger.log(INFO, "Current threads: " + current);
 //        }
 //        System.out.println("Current threads: " + current);
+    }
+
+    private void sleepWithVariation(long minSleepMillis, long maxSleepMillis) throws RuntimeException {
+        //            logger.log(INFO, "Thread is virtual: " + Thread.currentThread().isVirtual());
+        try {
+            Thread.yield();
+            Thread.sleep(ofMillis(random(minSleepMillis, maxSleepMillis)));
+        } catch (InterruptedException ex) {
+            Logger.getLogger(EmbeddedGfSimpleServlet.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException(ex);
+        }
     }
 
     private long random(long min, long max) {
@@ -74,6 +79,14 @@ public class EmbeddedGfSimpleServlet extends HttpServlet {
             }
         }
         return false;
+    }
+
+    private void runInDeeperStack(Runnable runnable, int depth) {
+        if (depth > 0) {
+            runInDeeperStack(runnable, depth-1);
+        } else {
+            runnable.run();
+        }
     }
 
 }

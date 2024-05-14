@@ -13,9 +13,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -25,23 +28,29 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class Benchmark {
 
+    static class Params {
+
+        int parallelRequests = 10000;
+        int allRequests = 50000;
+        String url = "http://localhost:8080/";
+        String argName;
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
-        final int numberOfRequests = 20000;
-        final AtomicLong requestsToSend = new AtomicLong(50000);
+        final Params params = parseArgs(args);
+        final int numberOfInitialRequests = params.parallelRequests;
+        final AtomicLong requestsToSend = new AtomicLong(params.allRequests);
         final AtomicLong responsesReceived = new AtomicLong(0);
-        final long requestsToSendConstant = requestsToSend.get();
-        Queue<CompletableFuture<?>> futures = new LinkedBlockingDeque<>();
-        LocalDateTime start = now();
+        final long totalRequestsToSend = requestsToSend.get();
         HttpRequest request = HttpRequest.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
-                .uri(URI.create("http://localhost:9090/"))
+                .uri(URI.create(params.url))
                 .timeout(Duration.ofSeconds(50))
                 .GET()
                 .build();
         final HttpClient client = HttpClient.newHttpClient();
-        for (int i = 0; i < numberOfRequests; i++) {
-            sendRequest(client, request, futures, requestsToSend, responsesReceived, requestsToSendConstant);
-        }
+        LocalDateTime start = now();
+        Queue<CompletableFuture<?>> futures = sendAllRequests(numberOfInitialRequests, client, request, requestsToSend, responsesReceived, totalRequestsToSend);
         try {
             CompletableFuture<?> future = futures.poll();
             while (future != null) {
@@ -59,20 +68,51 @@ public class Benchmark {
 
     }
 
-    private static void sendRequest(final HttpClient client, HttpRequest request, Queue<CompletableFuture<?>> futures, AtomicLong requestsToSend, AtomicLong responsesReceived, long requestsToSendConstant) {
+    private static Queue<CompletableFuture<?>> sendAllRequests(final int numberOfInitialRequests, final HttpClient client, HttpRequest request, final AtomicLong requestsToSend, final AtomicLong responsesReceived, final long totalRequestsToSend) {
+        Queue<CompletableFuture<?>> futures = new LinkedBlockingDeque<>();
+        final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        for (int i = 0; i < numberOfInitialRequests; i++) {
+            executor.submit(() -> sendRequest(client, request, futures, requestsToSend, responsesReceived, totalRequestsToSend, executor));
+        }
+        return futures;
+    }
+
+    private static Params parseArgs(String[] args) {
+        final Params p = Arrays.stream(args).reduce(new Params(), (params, arg) -> {
+            if (params.argName == null) {
+                params.argName = arg;
+            } else {
+                switch (params.argName) {
+                    case "-n" ->
+                        params.allRequests = Integer.valueOf(arg);
+                    case "-c" ->
+                        params.parallelRequests = Integer.valueOf(arg);
+                }
+                params.argName = null;
+            }
+            return params;
+        }, (p1, p2) -> p1);
+        if (p.argName != null) {
+            p.url = p.argName;
+            p.argName = null;
+        }
+        return p;
+    }
+
+    private static void sendRequest(final HttpClient client, HttpRequest request, Queue<CompletableFuture<?>> futures, AtomicLong requestsToSend, AtomicLong responsesReceived, long totalRequestsToSend, ExecutorService executor) {
         if (requestsToSend.decrementAndGet() >= 0) {
             var future = client
-                    .sendAsync(request, HttpResponse.BodyHandlers.ofString());
+                    .sendAsync(request, HttpResponse.BodyHandlers.discarding());
             futures.add(
                     future
-                            .thenRun(() -> {
+                            .thenRunAsync(() -> {
                                 final long responses = responsesReceived.incrementAndGet();
-                                if (responses % (requestsToSendConstant / 10) == 0) {
+                                if (responses % (totalRequestsToSend / 10) == 0) {
                                     System.out.println("Received " + responses + " responses so far...");
                                 }
-                            })
+                            }, executor)
                             .thenRun(() -> {
-                                sendRequest(client, request, futures, requestsToSend, responsesReceived, requestsToSendConstant);
+                                sendRequest(client, request, futures, requestsToSend, responsesReceived, totalRequestsToSend, executor);
                             })
             );
         }

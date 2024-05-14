@@ -23,6 +23,8 @@
  */
 package fish.payara.codingdojo.playwithloom;
 
+import static fish.payara.codingdojo.playwithloom.ServerWithoutThreads.getSocket;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -36,9 +38,7 @@ import java.util.logging.Logger;
 public class ServerWithLoom {
 
     public static void main(String[] args) throws IOException {
-        int port = 8080;
-        ServerSocket serverSocket = new ServerSocket(port, 10_000);
-        System.out.println("Server is listening on port " + port);
+        ServerSocket serverSocket = getSocket();
 
         while (true) {
             // Accept incoming client connections

@@ -1,8 +1,10 @@
 package ee.omnifish.glassfish.vt;
 
+import static java.lang.System.Logger.Level.TRACE;
 import static java.lang.System.Logger.Level.WARNING;
 import static java.nio.file.Path.of;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -41,10 +43,11 @@ public class EmbeddedGlassfishApp {
     }
 
     private void loadPropertiesFromFile(final GlassFishProperties gfProperties) {
-        final Path gfPropertiesPath = of("gf.properties");
+        final Path gfPropertiesPath = of(System.getProperty("properties", "glassfish.properties"));
         try (Reader inProperties = Files.newBufferedReader(gfPropertiesPath)) {
             gfProperties.getProperties().load(inProperties);
-//        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
+            System.getLogger(this.getClass().getName()).log(TRACE, "File \"" + gfPropertiesPath.toAbsolutePath() + "\" does not exist, ignore it");
         } catch (IOException e) {
             System.getLogger(this.getClass().getName()).log(WARNING, "Cannot open file \"" + gfPropertiesPath.toAbsolutePath() + "\". Reason: " + e.getMessage());
         }

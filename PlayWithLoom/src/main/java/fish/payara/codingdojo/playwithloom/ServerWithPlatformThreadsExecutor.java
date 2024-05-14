@@ -23,6 +23,8 @@
  */
 package fish.payara.codingdojo.playwithloom;
 
+import static fish.payara.codingdojo.playwithloom.ServerWithoutThreads.getSocket;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -39,10 +41,8 @@ public class ServerWithPlatformThreadsExecutor {
 
     public static void main(String[] args) throws IOException {
         int port = 8080;
-        ServerSocket serverSocket = new ServerSocket(port, 10_000);
-        System.out.println("Server is listening on port " + port);
-        ExecutorService pool = Executors.newFixedThreadPool(500);
-//        ExecutorService pool = Executors.newFixedThreadPool(90);
+        ServerSocket serverSocket = getSocket();
+        ExecutorService pool = Executors.newFixedThreadPool(Integer.parseInt(System.getProperty("threads", "10000")));
 
         while (true) {
             // Accept incoming client connections
