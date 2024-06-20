@@ -30,6 +30,8 @@ public class EmbeddedGfSimpleServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+//                logger.log(WARNING, () -> "Current thread: " + Thread.currentThread().getName() + (Thread.currentThread().isVirtual() ? "is" : "is not") + " a virtual thread.");
+
         var current = counter.incrementAndGet();
         final int maxCounterValue = maxCounter.get();
         if (current > maxCounterValue) {
@@ -62,8 +64,10 @@ public class EmbeddedGfSimpleServlet extends HttpServlet {
         }
     }
 
+    final Random random = new Random(0);
+
     private long random(long min, long max) {
-        return new Random().nextLong(min, max + 1);
+        return random.nextLong(min, max + 1);
     }
 
     private boolean shouldPrint(int current) {

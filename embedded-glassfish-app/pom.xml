@@ -12,7 +12,7 @@
         <glassfish.embedded.version>7.0.14</glassfish.embedded.version>
         <exec.executable>java</exec.executable>
         <exec.defaultVmArgs>--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.naming/javax.naming.spi=ALL-UNNAMED
-            -Dhttp.port=${http.port} -Djdk.tracePinnedThreads=full -Djdk.trackAllThreads=true -Xmx1024m</exec.defaultVmArgs>
+            -Dhttp.port=${http.port} -Djdk.tracePinnedThreads=full -Djdk.trackAllThreads=true -Xmx20024m</exec.defaultVmArgs>
         <exec.args>${exec.defaultVmArgs} -cp ${project.build.directory}/classes:${project.build.directory}/dependencies/* ${exec.mainClass} ${exec.appArgs}</exec.args>
     </properties>
     <name>PlayWithLoom: Embedded GlassFish App</name>

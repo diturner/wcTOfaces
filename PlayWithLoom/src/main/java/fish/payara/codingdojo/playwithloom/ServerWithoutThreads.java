@@ -169,7 +169,6 @@ public class ServerWithoutThreads {
     private static void sleepWithVariation(long minSleepMillis, long maxSleepMillis) throws RuntimeException {
         //            logger.log(INFO, "Thread is virtual: " + Thread.currentThread().isVirtual());
         try {
-            Thread.yield();
             Thread.sleep(ofMillis(random(minSleepMillis, maxSleepMillis)));
         } catch (InterruptedException ex) {
             Logger.getLogger(ServerWithoutThreads.class.getName()).log(Level.SEVERE, null, ex);
