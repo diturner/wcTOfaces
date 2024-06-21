@@ -23,6 +23,8 @@
  */
 package fish.payara.codingdojo.playwithloom;
 
+import static java.time.Duration.ofMillis;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,15 +32,17 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.net.SocketException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -46,7 +50,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ServerWithoutThreads {
 
-    private static org.postgresql.Driver initializeDriver = new org.postgresql.Driver(); // initialize driver
+//    private static org.postgresql.Driver initializeDriver = new org.postgresql.Driver(); // initialize driver
+    private static final boolean SHOULD_LOG = false;
 
     public static void main(String[] args) throws IOException {
         int port = 8080;
@@ -80,37 +85,10 @@ public class ServerWithoutThreads {
 //            String url = requestParts[1];
 
                 // Process the request and generate a response (simplified for demonstration)
-                StringBuilder users = null;
-                if (counterStarted.get() % 2 > 0) {
-                    while (users == null) {
-                        // retry connect to database again and again
-                        try (Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/bonbonis", "bonbonis", "bonbonis")) {
-                            Statement st = con.createStatement();
-                            users = new StringBuilder();
-                            try (ResultSet rs = st.executeQuery("SELECT last_name from person")) {
-                                while (rs.next()) {
-                                    users.append(rs.getString(1)).append("\n");
-                                }
-                            }
-                        } catch (Exception e) {
-                            System.out.println("Well, exception connecting to database, trying again: " + e.getMessage());
-                            Thread.yield();
-                        }
-                    }
-                } else {
-                    // some part of request just quickly return
-                    users = new StringBuilder("Users calculated");
-                }
-                //                Thread.sleep(100); // load data from database
-                BigInteger bi = BigInteger.ONE;
-                for (int i = 1; i < 100; i++) {
-                    bi = bi.multiply(BigInteger.valueOf(i));
-                }
 //                Thread.sleep(100); // save data to database
                 String response = "HTTP/1.0 200 OK\r\n\r\n"
-                        + Files.readString(Path.of("/etc/issue")) + "\n"
-                        + users.toString()
-                        + "100! = " + bi;
+                        //                        + taskWithDB();
+                        + taskWithSleep();
 
                 // Send the response to the client
                 OutputStream out = clientSocket.getOutputStream();
@@ -121,21 +99,95 @@ public class ServerWithoutThreads {
                 in.close();
                 clientSocket.close();
             }
+        } catch (SocketException e) {
+            System.out.println("ERROR SocketException: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
         counterFinished.incrementAndGet();
-        long diff = counterStarted.longValue() - counterFinished.longValue();
-        maxDiff.updateAndGet(d -> Math.max(d, diff));
-        System.out.printf("%-30s Counter: %5d -> %5d (%5d running, %5d max)%n",
-                LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
-                counterStarted.longValue(),
-                counterFinished.longValue(),
-                diff,
-                maxDiff.longValue());
+        if (SHOULD_LOG) {
+            long diff = counterStarted.longValue() - counterFinished.longValue();
+            maxDiff.updateAndGet(d -> Math.max(d, diff));
+            System.out.printf("%-30s Counter: %5d -> %5d (%5d running, %5d max)%n",
+                    LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
+                    counterStarted.longValue(),
+                    counterFinished.longValue(),
+                    diff,
+                    maxDiff.longValue());
+        }
+    }
+
+    public static ServerSocket getSocket() throws IOException {
+        final int port = Integer.parseInt(System.getProperty("port", "8080"));
+        final ServerSocket serverSocket = new ServerSocket(port, 100_000);
+        System.out.println("Server with PID " + ProcessHandle.current().pid() + " is listening on port " + port);
+        return serverSocket;
+    }
+
+    private static String taskWithDB() {
+        StringBuilder users = null;
+        if (counterStarted.get() % 2 > 0) {
+            while (users == null) {
+                // retry connect to database again and again
+                try (Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/bonbonis", "bonbonis", "bonbonis")) {
+                    Statement st = con.createStatement();
+                    users = new StringBuilder();
+                    try (ResultSet rs = st.executeQuery("SELECT last_name from person")) {
+                        while (rs.next()) {
+                            users.append(rs.getString(1)).append("\n");
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("Well, exception connecting to database, trying again: " + e.getMessage());
+                    Thread.yield();
+                }
+            }
+        } else {
+            // some part of request just quickly return
+            users = new StringBuilder("Users calculated");
+        }
+        //                Thread.sleep(100); // load data from database
+        BigInteger bi = BigInteger.ONE;
+        for (int i = 1; i < 100; i++) {
+            bi = bi.multiply(BigInteger.valueOf(i));
+        }
+        return users.toString() + "\n"
+                + "100! = " + bi;
+    }
+
+    private static String taskWithSleep() {
+        long sleep = Long.valueOf(System.getProperty("sleep", "100"));
+        int stackDepth = Integer.valueOf(System.getProperty("depth", "100"));
+        if (sleep >= 50) {
+            runInDeeperStack(() -> sleepWithVariation(sleep - 50, sleep + 50), stackDepth);
+        } else {
+            runInDeeperStack(() -> sleepWithVariation(0, 0), stackDepth);
+        }
+        return "OK";
+    }
+
+    private static void sleepWithVariation(long minSleepMillis, long maxSleepMillis) throws RuntimeException {
+        //            logger.log(INFO, "Thread is virtual: " + Thread.currentThread().isVirtual());
+        try {
+            Thread.sleep(ofMillis(random(minSleepMillis, maxSleepMillis)));
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ServerWithoutThreads.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static long random(long min, long max) {
+        return new Random().nextLong(min, max + 1);
+    }
+
+    private static void runInDeeperStack(Runnable runnable, int depth) {
+        if (depth > 0) {
+            runInDeeperStack(runnable, depth - 1);
+        } else {
+            runnable.run();
+        }
     }
 }
-
 /*
 from other computer
 117 reqs/s

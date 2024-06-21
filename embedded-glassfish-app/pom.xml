@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>ee.omnifish.glassfish.vt</groupId>
+    <artifactId>embedded-glassfish-app</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <exec.mainClass>ee.omnifish.glassfish.vt.EmbeddedGlassfishApp</exec.mainClass>
+        <glassfish.embedded.version>7.0.14</glassfish.embedded.version>
+        <exec.executable>java</exec.executable>
+        <exec.defaultVmArgs>--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.naming/javax.naming.spi=ALL-UNNAMED
+            -Dhttp.port=${http.port} -Djdk.tracePinnedThreads=full -Djdk.trackAllThreads=true -Xmx20024m</exec.defaultVmArgs>
+        <exec.args>${exec.defaultVmArgs} -cp ${project.build.directory}/classes:${project.build.directory}/dependencies/* ${exec.mainClass} ${exec.appArgs}</exec.args>
+    </properties>
+    <name>PlayWithLoom: Embedded GlassFish App</name>
+    <dependencies>
+        <dependency>
+            <groupId>org.glassfish.main.extras</groupId>
+            <artifactId>glassfish-embedded-all</artifactId>
+            <version>${glassfish.embedded.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ee.omnifish.glassfish</groupId>
+            <artifactId>grizzly-virtual-threads-pool</artifactId>
+            <version>7.0.14</version>
+        </dependency>
+        <!--        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+            <version>2.1.1</version>
+            <scope>provided</scope>
+        </dependency>-->
+    </dependencies>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <configuration>
+                        <!-- add provided dependencies to classpath when executing the app from Maven/Netbeans-->
+                        <classpathScope>compile</classpathScope>
+                        <arguments>
+                            <argument>--add-opens=java.base/java.lang=ALL-UNNAMED</argument>
+                            <argument>--add-opens=java.naming/javax.naming.spi=ALL-UNNAMED</argument>
+                            <argument>-Dhttp.port=${http.port}</argument>
+                            <argument>-Djdk.tracePinnedThreads=full</argument>
+                            <argument>-Djdk.trackAllThreads=true</argument>
+                            <argument>-Xmx1024m</argument>
+                            <argument>-cp</argument>
+                            <argument>${project.build.directory}/classes:${project.build.directory}/dependencies/*</argument>
+                            <argument>${exec.mainClass}</argument>
+                        </arguments>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
