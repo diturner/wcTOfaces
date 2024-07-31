@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:c="jakarta.tags.core">
+
+    <composite:interface>
+        <composite:attribute name="date" required="true" />
+        <composite:attribute name="update" required="false" />
+    </composite:interface>
+
+    <composite:implementation>
+        <h:outputScript name="static-resources/js/nameday.js" target="head" />
+        <h:outputStylesheet name="static-resources/css/sample.css" />
+                        
+        <h:panelGroup class="faces">
+            This is inside a Facelet Composite Component:
+            <span class="webcomponents"><nameday-element date="#{cc.attrs.date}" update="#{cc.attrs.update}" /></span>
+            <c:if test="#{empty cc.attrs.update}">
+                Nothing
+            </c:if>
+            <c:if test="#{not empty cc.attrs.update}">
+                Tag with name '#{cc.attrs.update}'
+            </c:if>
+            will be updated.
+            ...and here it ends.
+        </h:panelGroup>
+    </composite:implementation>
+</html>

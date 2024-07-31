@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:mycomponents="http://xmlns.jcp.org/jsf/composite/mycomponents">
+    <h:head>
+        <title>Facelet+WebComponents Title</title>
+        <link rel="icon" href="static-resources/img/birthday-cake.png" type="image/png" />
+        <link rel="stylesheet" href="static-resources/css/sample.css"/>
+        <script type="module" src="static-resources/js/nameday.js" />
+        
+    </h:head>
+    <h:body>
+        <h1><a href="https://www.webcomponents.org/">WebComponents</a> <span class="red">♥</span>️ <a href="https://jakarta.ee/specifications/faces/">Jakarta Faces</a></h1>
+        <h:form id="main-form">
+            <p>Info: all requests are delayed by 2 seconds for demo. Elements: <span class="webcomponents">WebComponents</span> and <span class="faces">Faces</span></p>
+            <h2>Static</h2>
+            <p>
+                <b>Faces tag</b><br />
+                <pre>&lt;h:outputText value="#<i />{bean.hello}" /></pre>
+                <span class="faces"><h:outputText value="#{bean.hello}" /></span>
+            </p>
+            <p>
+                <b>WebComponent tag without parameter</b><br />
+                <pre>&lt;nameday-element /&gt;</pre>
+                <span class="webcomponents"><nameday-element /></span>
+            </p>
+            <p>
+                <b>WebComponent tag with parameter</b><br />
+                <pre>&lt;nameday-element date="2202"/></pre>
+                <span class="webcomponents"><nameday-element date="2202"/></span>
+            </p>
+            <p>
+                <b>WebComponent tag with parameter from Faces/Expression Language</b><br />
+                <pre>&lt;nameday-element date="#<i />{bean.sampleDate}"/></pre>
+                <span class="webcomponents"><nameday-element date="#{bean.sampleDate}"/></span>
+            </p>
+
+            <h2>Dynamic</h2>
+            <p>
+                <b>Values transferred from WebComponent to Faces</b><br />
+                <pre>&lt;nameday-element update="main-form:sample-input"/></pre>
+                <span class="webcomponents"><nameday-element update="main-form:sample-input"/></span>
+                <b>updated in Faces:</b>
+                <span class="faces">
+                    <h:inputText id="sample-input" value="#{bean.sampleInput}" class="faces"/>
+                    <h:commandButton id="sample-input-btn" value="verify" action="#{bean.verifySampleInput}" class="faces">
+                        <f:ajax render="sample-input-out"  execute="@form"/> <!-- update only the output tag -->
+                    </h:commandButton>
+                    <h:outputText id="sample-input-out" value="#{bean.sampleInputVerification}" />
+                </span>
+            </p>
+            <p>
+                <b>Values from Faces</b>
+                <span class="faces">
+                    <h:inputText id="calendar-input" class="faces" value="#{bean.calendarInput}" />
+                    <h:commandButton id="calendar-input-btn" value="set" class="faces" >
+                        <f:ajax render="calendar-input-out"  execute="@form"/> <!-- update only the output tag -->
+                    </h:commandButton>
+                </span>
+                <b>updated in WebComponent:</b>
+                <h:panelGroup class="webcomponents" id="calendar-input-out"><nameday-element date="#{bean.calendarInput}"/></h:panelGroup>
+            </p>
+
+            <h2>Custom Facelet (Faces) Component</h2>
+            <p>
+                <b>Facelets Custom Component &lt;mycomponents:facesnameday&gt;</b>
+                <span class="faces">
+                    <pre>&lt;mycomponents:facesnameday date="0102"/></pre>
+                    <mycomponents:facesnameday date="0102"/>
+                    <pre>&lt;mycomponents:facesnameday date="0202" update="main-form:sample-out-2"/></pre>
+                    <mycomponents:facesnameday date="0202" update="main-form:sample-out-2"/><h:inputText styleClass="faces" id="sample-out-2" value="#{bean.sampleOut2}" />
+                    <pre>&lt;mycomponents:facesnameday date="0302"/></pre>
+                    <mycomponents:facesnameday date="0302"/>
+                </span>
+            </p>
+        </h:form>
+    </h:body>
+</html>
