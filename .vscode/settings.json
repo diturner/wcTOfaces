@@ -1,0 +1,21 @@
+{
+	"workbench.colorCustomizations": {
+		"statusBar.debuggingBackground": "#ffaa00",
+		"editor.selectionBackground": "#ccee0066",
+		"editor.selectionHighlightBackground": "#ccee0066",
+		"terminal.ansiRed": "#ff5a00",
+		"terminal.ansiBrightRed": "#ff5a00",
+		"[Material Theme Darker High Contrast]": {
+			"sideBar.background": "#131313",
+			"editor.background": "#111111",
+			"editorGroupHeader.tabsBackground": "#0f0f0f",
+			"tab.activeBackground": "#0f0f0f",
+			"tab.inactiveBackground": "#0f0f0f",
+			"panel.background": "#0f0f0f"
+		},
+		"activityBar.background": "#ffff0033",
+		"titleBar.activeBackground": "#ffff0066",
+		"titleBar.activeForeground": "#FEFCFD"
+	},
+	"java.configuration.updateBuildConfiguration": "disabled"
+}

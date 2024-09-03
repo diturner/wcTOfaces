@@ -8,10 +8,12 @@
         <title>Facelet+WebComponents Title</title>
         <link rel="icon" href="static-resources/img/birthday-cake.png" type="image/png" />
         <link rel="stylesheet" href="static-resources/css/sample.css"/>
+        <link rel="stylesheet" href="http://localhost:8080/WebComponentJSFPoC-1.0-SNAPSHOT/blinky/ui/css/payara.css" type="text/css" media="all"/>
         <script type="module" src="static-resources/js/nameday.js" />
+        <script type="module" src="static-resources/js/dis-test.js" />
         
     </h:head>
-    <h:body>
+    <h:body class="theme--light">
         <h1><a href="https://www.webcomponents.org/">WebComponents</a> <span class="red">♥</span>️ <a href="https://jakarta.ee/specifications/faces/">Jakarta Faces</a></h1>
         <h:form id="main-form">
             <p>Info: all requests are delayed by 2 seconds for demo. Elements: <span class="webcomponents">WebComponents</span> and <span class="faces">Faces</span></p>
@@ -75,6 +77,29 @@
                     <mycomponents:facesnameday date="0302"/>
                 </span>
             </p>
+
+
+
+            <hr />
+
+            <p>
+                Di's test component: <blinky-newthing noise="#{bean.noise}"></blinky-newthing>
+            </p>
+
+            <p>
+                Di's test component in faces: 
+                <h:panelGroup id="update-noise">
+                    <mycomponents:distestface noise="#{bean.noise}" />
+                </h:panelGroup>
+                <br />
+                <h:inputText value="#{bean.noise}" />
+                <h:commandButton value="Update noise from outside component" >
+                    <f:ajax render="update-noise" execute="@form"/>
+                </h:commandButton>
+            </p>
+
+
+
         </h:form>
     </h:body>
 </html>

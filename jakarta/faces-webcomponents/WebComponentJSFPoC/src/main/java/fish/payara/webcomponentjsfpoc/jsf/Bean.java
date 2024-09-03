@@ -16,6 +16,7 @@ public class Bean {
     private String sampleInputVerification = "Click 'verify'";
     private String calendarInput = "0201";
     private String sampleOut2 = "";
+    private String noise = "moo";
     /**
      * Creates a new instance of Bean
      */
@@ -64,6 +65,13 @@ public class Bean {
 
     public String getHello() {
         return hello;
+    }
+
+    public String getNoise() {
+        return noise;
+    }
+    public void setNoise(String noise) {
+        this.noise = noise;
     }
 
 }

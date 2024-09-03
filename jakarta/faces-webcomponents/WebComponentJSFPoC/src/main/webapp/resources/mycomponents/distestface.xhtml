@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:c="jakarta.tags.core">
+
+    <composite:interface>
+        <composite:attribute name="noise" required="true" />
+    </composite:interface>
+
+    <composite:implementation>
+        <h:outputScript name="static-resources/js/dis-test.js" target="head" />
+                        
+        <h:panelGroup>
+            <blinky-newthing noise="#{cc.attrs.noise}" />
+        </h:panelGroup>
+    </composite:implementation>
+</html>

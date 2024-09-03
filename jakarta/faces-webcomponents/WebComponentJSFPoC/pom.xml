@@ -10,6 +10,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jakartaee>10.0.0</jakartaee>
+        <blinky.version>0.68.0</blinky.version>
     </properties>
     
     <dependencies>
@@ -18,6 +19,11 @@
             <artifactId>jakarta.jakartaee-api</artifactId>
             <version>${jakartaee}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fish.payara.ui</groupId>
+            <artifactId>blinky</artifactId>
+            <version>${blinky.version}</version>
         </dependency>
     </dependencies>
     
